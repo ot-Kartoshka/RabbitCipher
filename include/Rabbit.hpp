@@ -2,35 +2,45 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <span>
+#include <vector>
+
 
 class Rabbit {
-private:
-    struct RabbitState {
-        uint32_t X[8];
-        uint32_t C[8];
-        uint32_t b;     // carry bit
-    };
 
-    RabbitState state;
+    public:
 
-    static constexpr uint32_t A[8] = { 0x4D34D34D, 0xD34D34D3,
-        0x34D34D34, 0x4D34D34D, 0xD34D34D3,
-        0x34D34D34, 0x4D34D34D, 0xD34D34D3 };
+        static constexpr size_t KEY_SIZE = 16;
+        static constexpr size_t IV_SIZE = 8;
+        static constexpr size_t Z_SIZE = 16;
 
-    uint32_t g( uint32_t u, uint32_t v );
+        Rabbit() noexcept;
+        ~Rabbit();
 
-    void Next();
+    private:
 
-public:
-    static constexpr size_t KEY_SIZE = 16;
-    static constexpr size_t IV_SIZE = 8;
+        struct RabbitState {
+            uint32_t X[8];
+            uint32_t C[8];
+            uint32_t b;     // carry bit
+        };
 
-    Rabbit();
-    ~Rabbit();
+        RabbitState state;
 
-    void Init( const uint8_t K[ KEY_SIZE ], const uint8_t IV[ IV_SIZE ] );
+        static constexpr uint32_t A[8] = { 0x4D34D34D, 0xD34D34D3,
+            0x34D34D34, 0x4D34D34D, 0xD34D34D3,
+            0x34D34D34, 0x4D34D34D, 0xD34D34D3 };
 
-    void Strm( uint8_t Z[16] );
+        uint32_t g( uint32_t u, uint32_t v ) const noexcept;
 
-    void PrintState() const;
+        void Next() noexcept;
+
+        void Init(std::span<const uint8_t, KEY_SIZE> K, std::span<const uint8_t, IV_SIZE> IV) noexcept;
+
+        void Strm(std::span<uint8_t, Rabbit::Z_SIZE> Z) noexcept;
+
+    public:
+
+        void EncryptDecryptData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV, std::span<uint8_t> output ) noexcept;
+
 };

@@ -1,36 +1,26 @@
-//#include
-
-#include <iostream>
-#include <iomanip>
+#include <bit>     
+#include <ranges>    
+#include <algorithm>
 
 #include "../include/Rabbit.hpp"
 
-static inline uint32_t CycleShift32( uint32_t val, int shift ) {
+Rabbit::Rabbit() noexcept {
 
-	return ( val << shift ) | ( val >> ( 32 - shift ) );
-}
-
-Rabbit::Rabbit() {
-
-	for ( int i = 0; i < 8; ++i ) {
-		state.X[i] = 0;
-		state.C[i] = 0;
-	}
+	std::ranges::fill(state.X, 0);
+	std::ranges::fill(state.C, 0);
 	state.b = 0;
 
 }
 
 Rabbit::~Rabbit() {
 
-	for ( int i = 0; i < 8; ++i ) {
-		state.X[i] = 0;
-		state.C[i] = 0;
-	}
+	std::ranges::fill(state.X, 0);
+	std::ranges::fill(state.C, 0);
 	state.b = 0;
 
 }
 
-uint32_t Rabbit::g( uint32_t u, uint32_t v ) {
+uint32_t Rabbit::g( uint32_t u, uint32_t v ) const noexcept {
 
 	uint32_t sum = u + v;
 	uint64_t temp = static_cast<uint64_t>( sum ) * sum;
@@ -38,8 +28,8 @@ uint32_t Rabbit::g( uint32_t u, uint32_t v ) {
 	return static_cast<uint32_t>( temp ^ ( temp >> 32 ) );
 }
 
-void Rabbit::Next() {
-	
+void Rabbit::Next() noexcept {
+    
 	for ( int j = 0; j < 8; ++j ) {
 		uint64_t temp = static_cast<uint64_t>( state.C[j] ) + A[j] + state.b;
 		state.b = static_cast<uint32_t>( temp >> 32 ); 
@@ -52,36 +42,32 @@ void Rabbit::Next() {
 		G[j] = g( state.X[j], state.C[j] );
 	}
 
-
-	state.X[0] = G[0] + CycleShift32( G[7], 16 ) + CycleShift32( G[6], 16 );
-	state.X[1] = G[1] + CycleShift32( G[0], 8 ) + G[7];
-	state.X[2] = G[2] + CycleShift32( G[1], 16 ) + CycleShift32( G[0], 16 );
-	state.X[3] = G[3] + CycleShift32( G[2], 8 ) + G[1];
-	state.X[4] = G[4] + CycleShift32( G[3], 16 ) + CycleShift32( G[2], 16 );
-	state.X[5] = G[5] + CycleShift32( G[4], 8 ) + G[3];	
-	state.X[6] = G[6] + CycleShift32( G[5], 16 ) + CycleShift32( G[4], 16 );
-	state.X[7] = G[7] + CycleShift32( G[6], 8 ) + G[5];
+	state.X[0] = G[0] + std::rotl( G[7], 16 ) + std::rotl( G[6], 16 );
+	state.X[1] = G[1] + std::rotl( G[0], 8 ) + G[7];
+	state.X[2] = G[2] + std::rotl( G[1], 16 ) + std::rotl( G[0], 16 );
+	state.X[3] = G[3] + std::rotl( G[2], 8 ) + G[1];
+	state.X[4] = G[4] + std::rotl( G[3], 16 ) + std::rotl( G[2], 16 );
+	state.X[5] = G[5] + std::rotl( G[4], 8 ) + G[3];
+	state.X[6] = G[6] + std::rotl( G[5], 16 ) + std::rotl( G[4], 16 );
+	state.X[7] = G[7] + std::rotl( G[6], 8 ) + G[5];
 
 }
 
-void Rabbit::Init( const uint8_t K[ KEY_SIZE ], const uint8_t IV[ IV_SIZE ] ) {
+void Rabbit::Init( std::span<const uint8_t, KEY_SIZE> K, std::span<const uint8_t, IV_SIZE> IV ) noexcept {
 
 	uint16_t K_[8];
-
 	for ( int i = 0; i < 8; ++i ) {
-		K_[i] = static_cast<uint16_t>(K[i * 2 + 1] << 8) | K[i * 2];
+		K_[i] = static_cast<uint16_t>( K[ i * 2 + 1 ] << 8 ) | K[ i * 2 ];
 	}
 
 	state.b = 0;
 	for ( int j = 0; j < 8 ; ++j ) {
 		
 		if ( j % 2 == 0 ) {
-		
 			state.X[j] = ( static_cast<uint32_t>( K_[ (j + 1) % 8 ] ) << 16 ) | K_[j];
 			state.C[j] = ( static_cast<uint32_t>( K_[ (j + 4) % 8 ] ) << 16 ) | K_[ (j + 5) % 8 ];
 		} 
 		else {
-			
 			state.X[j] = ( static_cast<uint32_t>( K_[ (j + 5) % 8 ] ) << 16 ) | K_[ (j + 4) % 8 ];
 			state.C[j] = ( static_cast<uint32_t>( K_[j] ) << 16 ) | K_[ (j + 1) % 8 ];
 		}
@@ -89,7 +75,7 @@ void Rabbit::Init( const uint8_t K[ KEY_SIZE ], const uint8_t IV[ IV_SIZE ] ) {
 	}
 
 	for ( int i = 0; i < 4; ++i ) {
-		Rabbit::Next();
+		Next();
 	}
 	
 	uint32_t IV_[2];
@@ -107,13 +93,14 @@ void Rabbit::Init( const uint8_t K[ KEY_SIZE ], const uint8_t IV[ IV_SIZE ] ) {
 	state.C[7] ^= state.X[3] ^ ( ( IV_[1] << 16 ) | ( IV_[0] & 0x0000FFFF ) );
 
 	for ( int i = 0; i < 4; ++i ) {
-		Rabbit::Next();
+		Next();
 	}
+
 }
 
-void Rabbit::Strm( uint8_t Z[16] ) {
-
-	Rabbit::Next();
+void Rabbit::Strm( std::span<uint8_t, Z_SIZE> Z ) noexcept {
+	
+	Next();
 
 	uint16_t Z_[8];
 
@@ -133,15 +120,18 @@ void Rabbit::Strm( uint8_t Z[16] ) {
 
 }
 
+void Rabbit::EncryptDecryptData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV , std::span<uint8_t> output ) noexcept {
 
+	Init( K, IV );
+	std::array<uint8_t, Z_SIZE> keystream;
 
+	for ( size_t i = 0; i < input.size(); ++i ) {
 
-void Rabbit::PrintState() const {
-	std::cout << std::hex << std::setfill('0');
-	std::cout << "State X: ";
-	for (int i = 0; i < 8; ++i) std::cout << std::setw(8) << state.X[i] << " ";
-	std::cout << "\nState C: ";
-	for (int i = 0; i < 8; ++i) std::cout << std::setw(8) << state.C[i] << " ";
-	std::cout << "\nCarry b: " << std::dec << state.b << "\n";
-	std::cout << "--------------------------------------------------\n";
+		if ( i % Z_SIZE == 0 ) {
+			Strm( keystream );
+		}
+
+		output[i] = input[i] ^ keystream[ i % Z_SIZE ];
+	}
+
 }
