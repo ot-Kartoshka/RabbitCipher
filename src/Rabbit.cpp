@@ -6,16 +6,16 @@
 
 Rabbit::Rabbit() noexcept {
 
-	std::ranges::fill(state.X, 0);
-	std::ranges::fill(state.C, 0);
+	std::ranges::fill( state.X, 0 );
+	std::ranges::fill( state.C, 0 );
 	state.b = 0;
 
 }
 
 Rabbit::~Rabbit() {
 
-	std::ranges::fill(state.X, 0);
-	std::ranges::fill(state.C, 0);
+	std::ranges::fill( state.X, 0 );
+	std::ranges::fill( state.C, 0 );
 	state.b = 0;
 
 }
@@ -120,7 +120,7 @@ void Rabbit::Strm( std::span<uint8_t, Z_SIZE> Z ) noexcept {
 
 }
 
-void Rabbit::EncryptDecryptData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV , std::span<uint8_t> output ) noexcept {
+void Rabbit::XorData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV , std::span<uint8_t> output ) noexcept {
 
 	Init( K, IV );
 	std::array<uint8_t, Z_SIZE> keystream;

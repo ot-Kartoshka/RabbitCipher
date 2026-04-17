@@ -16,6 +16,6 @@ endif()
 project ("Rabbit")
 
 # Добавьте источник в исполняемый файл этого проекта.
-add_executable (Rabbit "main.cpp" "src/Errors.cpp" "src/FileHandler.cpp" "src/Rabbit.cpp" "include/Errors.hpp" "include/FileHandler.hpp" "include/Rabbit.hpp")
+add_executable (Rabbit "main.cpp" "src/Errors.cpp" "src/FileHandler.cpp" "src/Rabbit.cpp" "include/Errors.hpp" "include/FileHandler.hpp" "include/Rabbit.hpp" "src/RabbitManager.cpp")
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.

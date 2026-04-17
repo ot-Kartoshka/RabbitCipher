@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <span>
-#include <vector>
 
 
 class Rabbit {
@@ -41,6 +40,6 @@ class Rabbit {
 
     public:
 
-        void EncryptDecryptData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV, std::span<uint8_t> output ) noexcept;
+        void XorData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV, std::span<uint8_t> output ) noexcept;
 
 };
