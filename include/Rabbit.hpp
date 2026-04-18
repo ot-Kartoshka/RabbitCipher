@@ -38,8 +38,9 @@ class Rabbit {
 
         void Strm(std::span<uint8_t, Rabbit::Z_SIZE> Z) noexcept;
 
-    public:
+        void XorData(std::span< const uint8_t > input, std::span<uint8_t> output) noexcept;
 
-        void XorData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV, std::span<uint8_t> output ) noexcept;
+
+        friend class RabbitManager;
 
 };

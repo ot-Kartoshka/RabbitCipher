@@ -120,9 +120,8 @@ void Rabbit::Strm( std::span<uint8_t, Z_SIZE> Z ) noexcept {
 
 }
 
-void Rabbit::XorData( std::span< const uint8_t > input, std::span< const uint8_t, KEY_SIZE > K, std::span< const uint8_t, IV_SIZE > IV , std::span<uint8_t> output ) noexcept {
+void Rabbit::XorData( std::span< const uint8_t > input, std::span<uint8_t> output ) noexcept {
 
-	Init( K, IV );
 	std::array<uint8_t, Z_SIZE> keystream;
 
 	for ( size_t i = 0; i < input.size(); ++i ) {

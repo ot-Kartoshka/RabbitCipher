@@ -8,7 +8,8 @@ enum class Error {
     InvalidKeySize,
     InvalidIVSize,
     NullData,
-    NullInput
+    NullInput,
+    FileWriteError
 };
 
 std::string_view error_to_string(Error err);
