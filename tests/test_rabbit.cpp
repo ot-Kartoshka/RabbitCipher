@@ -116,6 +116,33 @@ TEST(RabbitTest, XorSelfReversible) {
     EXPECT_EQ(data, plain);   
 }
 
+TEST(RabbitManagerTest, ConsistencyWithManual) {
+    std::string message = "Бара Бара БЕРЕ, варвара файла непе";
+    std::vector<uint8_t> original_plain(message.begin(), message.end());
+
+    auto K_vec = hexToBytes("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F");
+    auto IV_vec = hexToBytes("00 01 02 03 04 05 06 07");
+
+    std::span<const uint8_t, Rabbit::KEY_SIZE> K(K_vec.data(), 16);
+    std::span<const uint8_t, Rabbit::IV_SIZE> IV(IV_vec.data(), 8);
+
+    Rabbit core_engine;
+    core_engine.Init(K, IV);
+
+    std::vector<uint8_t> manual_cipher = original_plain;
+    core_engine.XorData(manual_cipher, manual_cipher);
+
+    RabbitManager manager;
+    std::vector<uint8_t> manager_cipher = manager.EncryptData(original_plain, K, IV);
+
+
+    EXPECT_EQ(manual_cipher, manager_cipher) << "Помилка: Менеджер зашифрував інакше, ніж вручну!";
+
+    EXPECT_NE(manager_cipher, original_plain);
+
+    std::vector<uint8_t> decrypted = manager.DecryptData(manager_cipher, K, IV);
+    EXPECT_EQ(decrypted, original_plain) << "Помилка: Розшифровані дані не збігаються з оригіналом!";
+}
 
 TEST(KeyManagerTest, ReadKeyInvalidSize_ReturnsInvalidKeySize) {
     std::string badKeyFile = "test_bad_key.bin";
