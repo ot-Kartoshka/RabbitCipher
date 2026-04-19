@@ -9,7 +9,11 @@ enum class Error {
     InvalidIVSize,
     NullData,
     NullInput,
-    FileWriteError
+    FileWriteError,
+    NullKeyInput,
+    OverwriteInputError,
+    ActionAborted,
+    LogicError
 };
 
 std::string_view error_to_string(Error err);

@@ -43,4 +43,11 @@ class Rabbit {
 
         friend class RabbitManager;
 
+        friend class RabbitTest_IsoVector1_Test;
+        friend class RabbitTest_IsoVector2_Test;
+        friend class RabbitTest_IsoVector3_Test;
+        friend class RabbitTest_IsoVector4_Test;
+        friend class RabbitTest_XorSelfReversible_Test;
+        friend class RabbitTest_InternalStates_Annex_C43_Test;
+
 };
