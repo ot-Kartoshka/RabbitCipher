@@ -117,6 +117,7 @@ void PrintHelp() {
 int main( int argc, char** argv ) {
     auto parsedArgs = parse_args( argc, argv );
     if ( !parsedArgs ) {
+        PrintHelp();
         std::println( stderr, "Error: {}", error_to_string( parsedArgs.error() ) );
         return 1;
     }
