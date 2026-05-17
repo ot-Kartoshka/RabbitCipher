@@ -170,11 +170,20 @@ TEST(RabbitManagerTest, EndToEndFileEncryption) {
     out.close();
 
     RabbitManager manager;
+    RabbitManager::Options encOpt;
+    encOpt.encrypt_mode = true;
+    encOpt.generate_key = true; 
+    encOpt.yes_to_all = true;   
 
-    auto encRes = manager.Conductor(inFile, encFile, keyFile, true);
+    auto encRes = manager.Conductor(inFile, encFile, keyFile, encOpt);
     ASSERT_TRUE(encRes.has_value());
 
-    auto decRes = manager.Conductor(encFile, decFile, keyFile, false);
+    RabbitManager::Options decOpt;
+    decOpt.encrypt_mode = false;
+    decOpt.generate_key = false; 
+    decOpt.yes_to_all = true;    
+
+    auto decRes = manager.Conductor(encFile, decFile, keyFile, decOpt);
     ASSERT_TRUE(decRes.has_value());
 
     std::ifstream inDec(decFile);

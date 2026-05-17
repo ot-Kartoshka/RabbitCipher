@@ -1,6 +1,4 @@
-﻿#include <iostream>
-#include <string>
-#include <print>
+﻿#include <string>
 #include <filesystem>
 
 #include "include/RabbitManager.hpp"
@@ -16,6 +14,10 @@ struct Args {
     bool generate_key = false;
     bool encrypt_mode = true;
     bool help = false;
+    bool no_iv = false;
+    bool save_iv_to_key = false;
+    std::string force_iv_from = "";
+    bool yes_to_all = false;
 };
 
 
@@ -67,9 +69,13 @@ std::expected<Args, Error> parse_args( int argc, char** argv ) {
     for ( size_t i = 0; i < v_args.size(); ++i ) {
         std::string_view curr = v_args[i];
 
-        if ( curr == "-h" || curr == "--help") args.help = true;
-        else if ( curr == "-e" || curr == "--encrypt") args.encrypt_mode = true;
-        else if ( curr == "-d" || curr == "--decrypt") args.encrypt_mode = false;
+        if (curr == "-h" || curr == "--help") args.help = true;
+        else if (curr == "-e" || curr == "--encrypt") args.encrypt_mode = true;
+        else if (curr == "-d" || curr == "--decrypt") args.encrypt_mode = false;
+        else if (curr == "-y" || curr == "--yes") args.yes_to_all = true;
+        else if (curr == "--no-iv") args.no_iv = true;
+        else if (curr == "--save-iv-to-key") args.save_iv_to_key = true;  
+        else if (curr == "--force-iv-from" && i + 1 < v_args.size()) args.force_iv_from = v_args[++i]; 
         else if ( curr == "-g" || curr == "--generate") {
             if ( key_flag ) return std::unexpected( Error::ParseError );
             args.generate_key = true;
@@ -105,9 +111,13 @@ void PrintHelp() {
     std::println("  -e, --encrypt          Зашифрувати вхідний файл.");
     std::println("  -d, --decrypt          Розшифрувати вхідний файл.");
     std::println("");
-    std::println("Робота з ключем (оберіть один варіант):");
-    std::println("  -k, --key <path>       Використати існуючий файл ключа (24 байти).");
+    std::println("Робота з ключем та IV:");
+    std::println("  -k, --key <path>       Використати існуючий файл ключа.");
     std::println("  -g, --generate [path]  Згенерувати новий ключ.");
+    std::println("  --no-iv                Шифрувати/Дешифрувати без вектора ініціалізації (тільки ключ).");
+    std::println("  --save-iv-to-key       Зберегти згенерований IV також у файл ключа (тільки шифрування).");
+    std::println("  --force-iv-from <src>  Джерело IV при конфлікті: 'file' або 'key' (тільки дешифрування).");
+    std::println("  -y, --yes              Тихий режим (автоматично погоджуватись на всі запитання).");
     std::println("");
     std::println("Додаткові опції:");
     std::println("  -o, --output <path>    Шлях для збереження результату.");
@@ -158,8 +168,16 @@ int main( int argc, char** argv ) {
         return 1;
     }
 
+    RabbitManager::Options opt;
+    opt.encrypt_mode = args.encrypt_mode;
+    opt.generate_key = args.generate_key;
+    opt.no_iv = args.no_iv;
+    opt.save_iv_to_key = args.save_iv_to_key;
+    opt.force_iv_from = args.force_iv_from;
+    opt.yes_to_all = args.yes_to_all;
+
     RabbitManager manager;
-    auto processResult = manager.Conductor( args.input_path, args.output_path, args.key_path, args.generate_key );
+    auto processResult = manager.Conductor( args.input_path, args.output_path, args.key_path, opt );
 
     if ( !processResult ) {
         std::println( stderr, "Error during processing: {}", error_to_string( processResult.error() ) );
